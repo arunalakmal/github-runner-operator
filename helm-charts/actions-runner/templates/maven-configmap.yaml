@@ -1,0 +1,8 @@
+{{- if .Values.mavenconfig.enabled -}}
+apiVersion: v1
+data:
+  settings.xml: | {{ .Values.mavenconfig.settingsFile| nindent 4 }}
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-maven-settings
+{{- end -}}

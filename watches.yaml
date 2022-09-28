@@ -1,0 +1,6 @@
+# Use the 'create api' subcommand to add watches to this file.
+- group: operators.ikea.com
+  version: v1alpha1
+  kind: GitHubRunners
+  chart: helm-charts/actions-runner
+#+kubebuilder:scaffold:watch
