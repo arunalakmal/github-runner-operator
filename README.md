@@ -21,7 +21,7 @@ If it is an Organisationl level runner registration GitHub Apps auth method is s
 Currently deployment supports with the manifests as we don't have a Helm Chart created to deploy the Operator. In order to deploy this Operator you need to have the ´cluster-admin´ privileges.
 
 ´´´
-oc create -f <>
+oc create -f https://raw.githubusercontent.com/arunalakmal/github-runner-operator/main/deploy/manifests.yaml
 ´´´
 
 There will be a new project/namespace created named ´github-runner-operator-system´ and Operator will be deployed. Operator Will be deployed to this Project/Namespace. Operator will be looking into the all namespaces for the runners.  
