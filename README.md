@@ -20,9 +20,9 @@ If it is an Organisationl level runner registration GitHub Apps auth method is s
 
 Currently deployment supports with the manifests as we don't have a Helm Chart created to deploy the Operator. In order to deploy this Operator you need to have the ´cluster-admin´ privileges.
 
-´´´
+```
 oc create -f https://raw.githubusercontent.com/arunalakmal/github-runner-operator/main/deploy/manifests.yaml
-´´´
+```
 
 There will be a new project/namespace created named ´github-runner-operator-system´ and Operator will be deployed. Operator Will be deployed to this Project/Namespace. Operator will be looking into the all namespaces for the runners.  
 
@@ -34,7 +34,7 @@ Sample Runner Manifest with the GitHub App Authentication and Maven Settings Fil
 
 Sample Manifest 
 
-´´´
+```
 apiVersion: operators.ikea.com/v1alpha1
 kind: GitHubRunners
 metadata:
@@ -148,12 +148,12 @@ spec:
   secretKey: github-pat
   secretName: github-pat
   serviceAccountName: default
-´´´
+```
 
-Create an object with the above manifest (´runner.yaml´). 
+Create an object with the above manifest ("runner.yaml"). 
 
-´´´
+```
 oc create -f runner.yaml
-´´´
+```
 
 Check the pod status and the runner status in the GitHub. 
