@@ -18,7 +18,7 @@ spec:
   githubAppInstallId: ""
   githubAppPem: ""
   githubDomain: ""
-  githubOwner: Inter-IKEA-Digital
+  githubOwner: <GitHubOrg>
   githubPat: ""
   githubRepository: ""
   imagePullSecrets: {}
