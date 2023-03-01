@@ -62,7 +62,7 @@ spec:
     /FCkHtISbTfC8LumJ0Ghh2c2FWQO5VsaUSyHVRJHhHELgP9ibuq/5Q==
     -----END RSA PRIVATE KEY-----
   githubDomain: ""
-  githubOwner: Inter-IKEA-Digital
+  githubOwner: <github-org>
   githubPat: ""
   githubRepository: ""
   imagePullSecrets: {}
