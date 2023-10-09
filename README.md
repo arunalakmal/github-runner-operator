@@ -157,3 +157,28 @@ oc create -f runner.yaml
 ```
 
 Check the pod status and the runner status in the GitHub. 
+
+## Adding Volumes and Volume Mounts
+
+Volumes and Mounts can be configured to the runner, ex: if there is a requirement to copy files in to two different locations volumes and mounts can be configured. 
+
+__Add The PVC name and the mount point as below to your manifest__
+
+```
+volumeMounts: []
+  # - name: vol1
+  #   mountPath: "/mnt/vol1"
+### Volume Mounts
+volumes: []
+  # - name: vol1
+  #   persistentVolumeClaim:
+  #     claimName: pvc
+```
+
+## Running as root user
+
+This is not the recemmended method to run a runner, but we had some use cases to support this requirements. 
+
+add `runAsNonRoot: false` setting to the manifest. 
+
+You need to add the `"RUNNER_ALLOW_RUNASROOT=1"` environment variable to the runner. 
