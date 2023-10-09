@@ -276,7 +276,7 @@ spec:
         - --metrics-bind-address=127.0.0.1:8080
         - --leader-elect
         - --leader-election-id=github-runner-operator
-        image: arunalakmal/github-runners-operator:0.0.4-beta
+        image: arunalakmal/github-runners-operator:0.0.5
         livenessProbe:
           httpGet:
             path: /healthz

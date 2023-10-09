@@ -88,7 +88,10 @@ memoryRequest: "512Mi"
 memoryLimit: "1Gi"
 cpuRequest: "100m"
 cpuLimit: "250m"
-
+# Enable the Runner Root Capabilities. This is not a recommended method to run the runners. But in some usecases 
+# it was required and requested by customers. Make sure to run with a custom runner image which runs as a root user.
+# Accepted values are "true" and "false". Make sure to set "RUNNER_ALLOW_RUNASROOT=1" in the environment variable. 
+runAsNonRoot: true
 # Enable custom cluster PKI loading
 # https://docs.openshift.com/container-platform/4.6/networking/configuring-a-custom-pki.html
 clusterPKI: false

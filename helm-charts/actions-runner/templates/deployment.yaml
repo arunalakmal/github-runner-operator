@@ -28,7 +28,7 @@ spec:
     spec:
       serviceAccountName: {{ .Values.serviceAccountName }}
       securityContext:
-        runAsNonRoot: true
+        runAsNonRoot: {{ .Values.runAsNonRoot }}
 
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
