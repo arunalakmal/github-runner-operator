@@ -180,3 +180,12 @@ mavenconfig:
       </proxies>
     </settings>
 ### End Maven Config
+### Volume Mount Configurations 
+volumeMounts: []
+  # - name: vol1
+  #   mountPath: "/mnt/vol1"
+### Volume Mounts
+volumes: []
+  # - name: vol1
+  #   persistentVolumeClaim:
+  #     claimName: pvc
