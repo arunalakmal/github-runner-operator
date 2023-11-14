@@ -6,6 +6,6 @@
   {{ default (printf "github-%s-runner-secret" .Release.Name) .Values.appSecretName }}
 {{- end }}
 
-{{- define "scaledRunnerName" -}}
-  {{- printf "scaled-github-%s-runner" .Release.Name }}
+{{- define "scaledRunner" -}}
+  {{- printf "scaled-%s" .Release.Name }}
 {{- end }}

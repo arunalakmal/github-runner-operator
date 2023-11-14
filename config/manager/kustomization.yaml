@@ -13,4 +13,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: arunalakmal/github-runners-operator
-  newTag: 1.0.0-beta02
+  newTag: 1.0.0-beta03

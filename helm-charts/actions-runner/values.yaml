@@ -196,3 +196,4 @@ autoScaling:
   enabled: false
   runnerScope: "org"
   pendingJobs: 1
+  scaleInTime: 600
