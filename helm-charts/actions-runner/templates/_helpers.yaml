@@ -1,0 +1,11 @@
+{{- define "triggerAuthentication" -}}
+  {{- printf "github-%s-trigger-auth" .Release.Name }}
+{{- end }}
+
+{{- define "runnerSecret" -}}
+  {{ default (printf "github-%s-runner-secret" .Release.Name) .Values.appSecretName }}
+{{- end }}
+
+{{- define "scaledRunnerName" -}}
+  {{- printf "scaled-github-%s-runner" .Release.Name }}
+{{- end }}

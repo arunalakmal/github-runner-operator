@@ -1,3 +1,4 @@
+{{ if not .Values.autoScaling.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -99,17 +100,17 @@ spec:
             - name: GITHUB_APP_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.appSecretName }}
+                  name: {{ include "runnerSecret" . }}
                   key: {{ .Values.appIdSecretKey}}
             - name: GITHUB_APP_INSTALL_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.appSecretName }}
+                  name: {{ include "runnerSecret" . }}
                   key: {{ .Values.appInstallIdSecretKey}}
             - name: GITHUB_APP_PEM
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.appSecretName }}
+                  name: {{ include "runnerSecret" . }}
                   key: {{ .Values.appPemSecretKey}}
             {{- end }}
 
@@ -163,3 +164,4 @@ spec:
             {{- if .Values.volumeMounts }}
               {{- toYaml .Values.volumeMounts | nindent 12 }}
             {{- end }}
+{{- end }}

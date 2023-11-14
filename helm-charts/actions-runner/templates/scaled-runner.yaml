@@ -1,0 +1,187 @@
+---
+{{ if .Values.autoScaling.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: {{ include "scaledRunnerName" . }}
+  # annotations:
+  #   autoscaling.keda.sh/paused: true          # Optional. Use to pause autoscaling of Jobs
+spec:
+  jobTargetRef:
+    parallelism: 1                            # [max number of desired pods](https://kubernetes.io/docs/concepts/workloads/controllers/job/#controlling-parallelism)
+    completions: 1                            # [desired number of successfully finished pods](https://kubernetes.io/docs/concepts/workloads/controllers/job/#controlling-parallelism)
+    activeDeadlineSeconds: 600                #  Specifies the duration in seconds relative to the startTime that the job may be active before the system tries to terminate it; value must be positive integer
+    backoffLimit: 6                           # Specifies the number of retries before marking this job failed. Defaults to 6
+    template:
+      metadata:
+        labels:
+          # DO NOT edit the instance label, it is used by the runner installer action to find the installed pod.
+          app.kubernetes.io/instance: {{ .Release.Name }}
+      spec:
+        serviceAccountName: {{ .Values.serviceAccountName }}
+        securityContext:
+            runAsNonRoot: {{ .Values.runAsNonRoot }}
+
+        {{- with .Values.imagePullSecrets }}
+        imagePullSecrets:
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+
+        {{- if .Values.nodeSelector }}
+        nodeSelector:
+            {{- toYaml .Values.nodeSelector | nindent 8 }}
+        {{- end }}
+
+        {{- if .Values.affinity }}
+        affinity:
+            {{- toYaml .Values.affinity | nindent 8 }}
+        {{- end }}
+
+        volumes:
+          # Enable custom cluster PKI
+          # https://docs.openshift.com/container-platform/4.6/networking/configuring-a-custom-pki.html
+          {{- if .Values.clusterPKI }}
+          - name: trusted-ca
+            configMap:
+              name: trusted-ca
+              items:
+                - key: ca-bundle.crt
+                  path: tls-ca-bundle.pem
+          {{- end }}
+          {{- if .Values.mavenconfig.enabled }}
+          - name: {{ .Release.Name }}-maven-settings
+            configMap:
+              name: {{ .Release.Name }}-maven-settings
+          {{- end }}
+          {{- if .Values.volumes }}
+            {{- toYaml .Values.volumes | nindent 8 }}
+          {{- end }}
+
+        containers:
+          - name: {{ .Release.Name }}
+            imagePullPolicy: Always
+
+            {{- $taggedImage := printf "%s:%s" .Values.runnerImage .Values.runnerTag }}
+            image: {{ $taggedImage }}
+
+            env:
+              - name: GITHUB_OWNER
+                value: {{ required ".Values.githubOwner must be set." .Values.githubOwner }}
+              - name: GITHUB_REPOSITORY
+                value: {{ .Values.githubRepository }}
+              - name: GITHUB_DOMAIN
+                value: {{ .Values.githubDomain }}
+              # The labels must be trimmed. The config script will stop reading labels if it encounters a space.
+              - name: RUNNER_LABELS
+                value: "{{ $taggedImage }},{{- range .Values.runnerLabels }}{{trim .}},{{- end }}"
+              {{- if .Values.runnerGroup }}
+              - name: RUNNER_GROUP
+                value: {{ .Values.runnerGroup }}
+              {{- end }}
+              {{- if .Values.ephemeral }}
+              - name: EPHEMERAL
+                value: "{{ .Values.ephemeral }}"
+              {{- end }}
+
+              # App Auth
+              {{- if .Values.githubAppId }}
+              - name: GITHUB_APP_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "runnerSecret" . }}
+                    key: {{ .Values.appIdSecretKey}}
+              - name: GITHUB_APP_INSTALL_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "runnerSecret" . }}
+                    key: {{ .Values.appInstallIdSecretKey}}
+              - name: GITHUB_APP_PEM
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "runnerSecret" . }}
+                    key: {{ .Values.appPemSecretKey}}
+              {{- end }}
+              # or, PAT Auth
+              {{- if .Values.githubPat }}
+              - name: GITHUB_PAT
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ .Values.secretName }}
+                    key: {{ .Values.secretKey }}
+              {{- end }}
+
+              # Any injected env values from values.yaml will go here
+                {{- range .Values.runnerEnv }}
+              - name: {{ .name }}
+                value: {{ .value }}
+          {{- end }}
+
+            securityContext:
+
+            resources:
+              requests:
+                memory: {{ .Values.memoryRequest }}
+                cpu: {{ .Values.cpuRequest }}
+              limits:
+                memory: {{ .Values.memoryLimit }}
+                cpu: {{ .Values.cpuLimit }}
+
+          # Wait until the runner service is actually listening before the pod goes into the Ready state.
+          # The entrypoint script takes 5-10s to connect to GitHub and start listening for jobs.
+          # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#probe-v1-core
+            readinessProbe:
+              initialDelaySeconds: 5
+              periodSeconds: 5
+              failureThreshold: 1
+              exec:
+                command:
+                  - pgrep
+                  - Runner.Listener
+
+            volumeMounts:
+              {{- if .Values.clusterPKI }}
+              - name: trusted-ca
+                mountPath: /etc/pki/ca-trust/extracted/pem
+                readOnly: true
+              {{- end }}
+              {{- if .Values.mavenconfig.enabled }}
+              - name: {{ .Release.Name }}-maven-settings
+                mountPath: /home/runner/.m2/
+              {{- end }}
+              {{- if .Values.volumeMounts }}
+                {{- toYaml .Values.volumeMounts | nindent 12 }}
+              {{- end }}
+  pollingInterval: 30                         # Optional. Default: 30 seconds
+  # successfulJobsHistoryLimit: 5               # Optional. Default: 100. How many completed jobs should be kept.
+  # failedJobsHistoryLimit: 5                   # Optional. Default: 100. How many failed jobs should be kept.
+  #envSourceContainerName: {container-name}    # Optional. Default: .spec.JobTargetRef.template.spec.containers[0]
+  minReplicaCount: 0                         # Optional. Default: 0
+  maxReplicaCount: 100                        # Optional. Default: 100
+  # rolloutStrategy: gradual                    # Deprecated: Use rollout.strategy instead (see below).
+  # rollout:
+  #   strategy: gradual                         # Optional. Default: default. Which Rollout Strategy KEDA will use.
+  #   propagationPolicy: foreground             # Optional. Default: background. Kubernetes propagation policy for cleaning up existing jobs during rollout.
+  scalingStrategy:
+    strategy: "default"                        # Optional. Default: default. Which Scaling Strategy to use. 
+  triggers:
+  - type: github-runner
+    metadata:
+      # Optional: The URL of the GitHub API, defaults to https://api.github.com
+      githubAPIURL: "https://api.github.com"
+      # Required: The owner of the GitHub repository, or the organization that owns the repository
+      owner: {{ required ".Values.githubOwner must be set." .Values.githubOwner }}
+      # Required: The scope of the runner, can be either "org" (organisation), "ent" (enterprise) or "repo" (repository)
+      runnerScope: "{{ .Values.autoScaling.runnerScope }}"
+      # Optional: The list of repositories to scale, separated by comma
+      repos: "{{- range .Values.autoScaling.repos }}{{trim .}},{{- end }}"
+      # Optional: The list of runner labels to scale on, separated by comma
+      labels: "{{- range .Values.runnerLabels }}{{trim .}},{{- end }}"
+      # Optional: The target number of queued jobs to scale on
+      targetWorkflowQueueLength: "{{ .Values.autoScaling.pendingJobs }}" # Default 1
+      # Optional: The name of the application ID from the GitHub App
+      applicationID: "{{ .Values.githubAppId }}"
+      # Optional: The name of the installation ID from the GitHub App once installed into Org or repo.
+      installationID: "{{ .Values.githubAppInstallId }}"      
+    authenticationRef:
+      name: {{ include "triggerAuthentication" . }}
+{{- end }}

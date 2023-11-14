@@ -1,0 +1,13 @@
+---
+{{ if .Values.autoScaling.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: {{ include "triggerAuthentication" . }}
+  namespace: runners
+spec:
+  secretTargetRef:
+    - parameter: appKey
+      name: {{ include "runnerSecret" . }}
+      key: {{ .Values.appPemSecretKey }}
+{{- end }}

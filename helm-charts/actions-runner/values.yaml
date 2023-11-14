@@ -1,5 +1,4 @@
 appName: actions-runner
-
 runnerImage: quay.io/redhat-github-actions/runner
 runnerTag: v1
 
@@ -29,7 +28,7 @@ githubPat: ""
 ### Refer to https://github.com/redhat-actions/openshift-actions-runners/blob/main/docs/github-app-authentication.md
 
 # The name of the k8s secret to create for GitHub App Auth
-appSecretName: "github-app"
+# appSecretName: "github-app" (removed and managed inside the functions)
 # The name of the key that points to the Github App ID
 appIdSecretKey: "github-app-id"
 # The name of the key that points to the Github App Install ID
@@ -192,3 +191,8 @@ volumes: []
   # - name: vol1
   #   persistentVolumeClaim:
   #     claimName: pvc
+## Enabling Autoscaling
+autoScaling: 
+  enabled: false
+  runnerScope: "org"
+  pendingJobs: 1
